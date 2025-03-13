@@ -34,6 +34,8 @@ def construct(m: int, k: int, n: int) -> \
 
     x_fp8, y_fp8 = per_token_cast_to_fp8(x), per_block_cast_to_fp8(y)
     # Transpose earlier so that the testing will not trigger transposing kernels
+    # LHS row-major, RHS column-major
+    # LHS SF col-major (TMA 16B aligned), RHS SF row-major
     x_fp8 = (x_fp8[0], get_col_major_tma_aligned_tensor(x_fp8[1]))
     return x_fp8, y_fp8, out, ref_out
 

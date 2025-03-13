@@ -69,6 +69,7 @@ def get_best_configs(m: int, n: int, k: int, num_groups: int, num_sms: int,
     get_last_wave_util = lambda bm, bn: fix_wave_saturate((ceil_div(m, bm) * ceil_div(n, bn) * num_groups) % num_sms)
 
     # Decide block sizes by waves
+    # tuning block size: criteria: less #waves, more last wave utilization, longer block_m, shorter block_n
     best_block_m, best_block_n = None, None
     for block_m in block_ms:
         for block_n in block_ns:
@@ -88,6 +89,7 @@ def get_best_configs(m: int, n: int, k: int, num_groups: int, num_sms: int,
 
     # Always pick the longest one
     # NOTES: for double B scales, the best number of stages may be reduced
+    # tuning number of stages: more stages -> more smem usage, find the longest pipeline that fits into SM
     best_num_stages, best_smem_size, sm90_capacity = None, None, 232448
     for num_stages in (6, 5, 4) if 128 % best_block_n != 0 else (8, 7, 6, 5, 4):
         best_smem_size = get_smem_size(num_stages, k, best_block_m, best_block_n)
@@ -103,6 +105,7 @@ def get_best_configs(m: int, n: int, k: int, num_groups: int, num_sms: int,
 
     # Recompute the minimal number of SMs required
     # NOTES: less L2 cache usage and less GPU frequency drop
+    # TODO: what is this hack?
     num_waves = get_num_waves(best_block_m, best_block_n)
     num_min_sms = ceil_div(ceil_div(m, best_block_m) * ceil_div(n, best_block_n) * num_groups, num_waves)
     num_min_sms = ceil_div(max(num_min_sms, num_sms - 8), best_num_tma_multicast) * best_num_tma_multicast
@@ -158,6 +161,7 @@ def gemm_fp8_fp8_bf16_nt(lhs: Tuple[torch.Tensor, torch.Tensor],
     # Auto-tuning with compilation
     global includes, template
     num_sms = get_num_sms()
+    # set available SMs, compute configurations, and compile the kernel
     num_sms, block_m, block_n, num_stages, num_tma_multicast, smem_size = get_best_configs(m, n, k, 1, num_sms)
     args = (lhs, lhs_scales, rhs, rhs_scales, out, m, torch.cuda.current_stream(), num_sms, smem_size)
     runtime = jit_tuner.compile_and_tune(

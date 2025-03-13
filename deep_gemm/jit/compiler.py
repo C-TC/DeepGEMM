@@ -96,6 +96,7 @@ def put(path, data, is_binary=False):
 
 def build(name: str, arg_defs: tuple, code: str) -> Runtime:
     # Compiler flags
+    # flags
     nvcc_flags = ['-std=c++17', '-shared', '-O3', '--expt-relaxed-constexpr', '--expt-extended-lambda',
                   '-gencode=arch=compute_90a,code=sm_90a',
                   '--ptxas-options=--register-usage-level=10' + (',--verbose' if 'DG_PTXAS_VERBOSE' in os.environ else ''),
@@ -140,6 +141,7 @@ def build(name: str, arg_defs: tuple, code: str) -> Runtime:
     assert return_code == 0, f'Failed to compile {src_path}'
 
     # Interleave FFMA reuse
+    # modify sass for control bits
     if enable_sass_opt:
         interleave_ffma.process(tmp_so_path)
 

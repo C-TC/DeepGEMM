@@ -11,3 +11,5 @@ from .jit_kernels import (
     get_m_alignment_for_contiguous_layout
 )
 from .utils import bench, bench_kineto, calc_diff
+# TODO: replace this with fast implementation
+from .triton_ref import per_token_quantize, transpose_per_token_quantize, per_block_quantize, transpose_per_block_quantize

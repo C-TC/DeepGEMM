@@ -17,6 +17,7 @@ class JITTuner:
         # NOTES: the function must have no accumulated side effects
         keys = {k: keys[k] for k in sorted(keys.keys())}
         signature = (name, f'{keys}')
+        # caching
         if signature in self.tuned:
             if os.getenv('DG_JIT_DEBUG', None):
                 print(f'Using cached JIT kernel {name} with keys {keys}')
