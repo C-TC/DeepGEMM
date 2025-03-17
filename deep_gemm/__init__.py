@@ -12,4 +12,4 @@ from .jit_kernels import (
 )
 from .utils import bench, bench_kineto, calc_diff
 # TODO: replace this with fast implementation
-from .triton_ref import per_token_quantize, transpose_per_token_quantize, per_block_quantize, transpose_per_block_quantize
+from .triton_impl import per_token_quantize, transpose_per_token_quantize, per_block_quantize, transpose_per_block_quantize

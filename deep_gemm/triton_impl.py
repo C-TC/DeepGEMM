@@ -19,7 +19,7 @@ def _per_token_quantize(
 ):
     # input x (m,n) can be row/column-major
     # output x_fp8 (m,n) is row-major
-    # output x_sf (m,n//128) is column-major
+    # output x_sf (m,n//128) is column-major, alignment requirement 16 bytes in m-axis
     
     pid_r = tl.program_id(0)
     pid_c = tl.program_id(1)

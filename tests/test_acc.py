@@ -63,10 +63,15 @@ def compare_construct(m: int, k: int, n: int) -> \
     # LHS row-major, RHS column-major
     # LHS SF col-major (TMA 16B aligned), RHS SF row-major
     x_fp8 = (x_fp8[0], get_col_major_tma_aligned_tensor(x_fp8[1]))
-
     deep_gemm.gemm_fp8_fp8_bf16_nt(x_fp8, y_fp8, out)
     dg_diff = calc_diff(out, ref_out)
-    print(f' > {m=}, {k=}, {n=}, per-tensor FP8 MMA: {raw_diff:.5f}, DeepGemm: {dg_diff:.5f}')
+    
+    x_triton, y_triton = deep_gemm.per_token_quantize(x), deep_gemm.per_block_quantize(y)
+    out_triton = torch.empty((m, n), device='cuda', dtype=torch.bfloat16)
+    deep_gemm.gemm_fp8_fp8_bf16_nt(x_triton, y_triton, out_triton)
+    triton_diff = calc_diff(out_triton, ref_out)
+    
+    print(f' > {m=}, {k=}, {n=}, per-tensor FP8 MMA: {raw_diff:.5f}, DeepGemm: {dg_diff:.5f}, Triton: {triton_diff:.5f}')
 
 def benchmark(m: int, k: int, n: int) -> None:
     x = torch.randn((m, k), device='cuda', dtype=torch.bfloat16)
